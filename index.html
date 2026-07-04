@@ -1,538 +1,872 @@
-<!DOCTYPE html>
+Presentation · HTML
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Background Services & Quartz.NET</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --surface2:  #1f2937;
-      --border:    #30363d;
-      --accent:    #58a6ff;
-      --accent2:   #3fb950;
-      --accent3:   #f78166;
-      --accent4:   #d2a8ff;
-      --text:      #e6edf3;
-      --text-muted:#8b949e;
-      --yellow:    #e3b341;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Background Services & Quartz.NET</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --surface2: #1f2937;
+        --border: #30363d;
+        --accent: #58a6ff;
+        --accent2: #3fb950;
+        --accent3: #f78166;
+        --accent4: #d2a8ff;
+        --text: #e6edf3;
+        --text-muted: #8b949e;
+        --yellow: #e3b341;
+      }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    html { scroll-behavior: smooth; }
+      html {
+        scroll-behavior: smooth;
+      }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      line-height: 1.7;
-    }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        line-height: 1.7;
+      }
 
-    /* ── PROGRESS BAR ── */
-    #progress-bar {
-      position: fixed; top: 0; left: 0; height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent4));
-      width: 0%; z-index: 999;
-      transition: width 0.2s ease;
-    }
+      /* ── PROGRESS BAR ── */
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--accent4));
+        width: 0%;
+        z-index: 999;
+        transition: width 0.2s ease;
+      }
 
-    /* ── NAV ── */
-    nav {
-      position: fixed; top: 3px; left: 0; right: 0;
-      background: rgba(13,17,23,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.75rem 2.5rem;
-      z-index: 100;
-    }
-    .nav-brand {
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      color: var(--accent);
-      letter-spacing: 0.05em;
-    }
-    .nav-links { display: flex; gap: 1.5rem; }
-    .nav-links a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.82rem;
-      font-weight: 500;
-      letter-spacing: 0.03em;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover { color: var(--accent); }
+      /* ── NAV ── */
+      nav {
+        position: fixed;
+        top: 3px;
+        left: 0;
+        right: 0;
+        background: rgba(13, 17, 23, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 2.5rem;
+        z-index: 100;
+      }
+      .nav-brand {
+        font-family: "Syne", sans-serif;
+        font-size: 1rem;
+        color: var(--accent);
+        letter-spacing: 0.05em;
+      }
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+      }
+      .nav-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        transition: color 0.2s;
+      }
+      .nav-links a:hover {
+        color: var(--accent);
+      }
 
-    /* ── LAYOUT ── */
-    main { padding-top: 64px; }
+      /* ── LAYOUT ── */
+      main {
+        padding-top: 64px;
+      }
 
-    section {
-      min-height: 100vh;
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 5rem 2.5rem;
-      max-width: 900px;
-      margin: 0 auto;
-      border-bottom: 1px solid var(--border);
-    }
+      section {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 5rem 2.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+        border-bottom: 1px solid var(--border);
+      }
 
-    /* ── HERO ── */
-    #hero {
-      min-height: 100vh;
-      display: flex; flex-direction: column; justify-content: center;
-      text-align: center;
-      padding: 5rem 2.5rem;
-      max-width: 900px;
-      margin: 0 auto;
-      position: relative;
-    }
-    .hero-eyebrow {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      color: var(--accent);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      margin-bottom: 1.25rem;
-    }
-    .hero-title {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2.8rem, 7vw, 5rem);
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 1.5rem;
-    }
-    .hero-title .hl { color: var(--accent); }
-    .hero-sub {
-      font-size: 1.1rem;
-      color: var(--text-muted);
-      max-width: 600px;
-      margin: 0 auto 3rem;
-    }
-    .hero-definition {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 8px;
-      padding: 1.5rem 2rem;
-      text-align: left;
-      font-size: 0.97rem;
-      color: var(--text);
-      line-height: 1.8;
-    }
-    .hero-definition strong { color: var(--accent); }
+      /* ── HERO ── */
+      #hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        padding: 5rem 2.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+      }
+      .hero-eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        color: var(--accent);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 1.25rem;
+      }
+      .hero-title {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(2.8rem, 7vw, 5rem);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+      }
+      .hero-title .hl {
+        color: var(--accent);
+      }
+      .hero-sub {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto 3rem;
+      }
+      .hero-definition {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+        padding: 1.5rem 2rem;
+        text-align: left;
+        font-size: 0.97rem;
+        color: var(--text);
+        line-height: 1.8;
+      }
+      .hero-definition strong {
+        color: var(--accent);
+      }
 
-    /* ── SECTION TITLES ── */
-    .section-eyebrow {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--accent2);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 0.6rem;
-    }
-    h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(1.7rem, 4vw, 2.4rem);
-      font-weight: 800;
-      margin-bottom: 2rem;
-      line-height: 1.2;
-    }
+      /* ── SECTION TITLES ── */
+      .section-eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        color: var(--accent2);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+      }
+      h2 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(1.7rem, 4vw, 2.4rem);
+        font-weight: 800;
+        margin-bottom: 2rem;
+        line-height: 1.2;
+      }
 
-    /* ── EXAMPLE CARDS ── */
-    .cards { display: grid; gap: 1.25rem; }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.5rem 1.75rem;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .card-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-bottom: 0.4rem;
-    }
-    .card h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
-    .card p { font-size: 0.92rem; color: var(--text-muted); }
+      /* ── EXAMPLE CARDS ── */
+      .cards {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.5rem 1.75rem;
+        transition:
+          border-color 0.2s,
+          transform 0.2s;
+      }
+      .card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      .card-num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-bottom: 0.4rem;
+      }
+      .card h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+      .card p {
+        font-size: 0.92rem;
+        color: var(--text-muted);
+      }
 
-    /* ── COMPARISON TABLE ── */
-    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
-    table { width: 100%; border-collapse: collapse; }
-    thead { background: var(--surface2); }
-    th {
-      padding: 0.9rem 1.25rem;
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    th:first-child { color: var(--text-muted); }
-    th.col-server { color: var(--accent2); }
-    th.col-serverless { color: var(--accent3); }
-    td {
-      padding: 0.85rem 1.25rem;
-      font-size: 0.92rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
-    tr:last-child td { border-bottom: none; }
-    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
-    td.feature { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; }
-    td.good { color: var(--accent2); }
-    td.bad  { color: var(--accent3); }
-    td.neutral { color: var(--text); }
+      /* ── COMPARISON TABLE ── */
+      .table-wrap {
+        overflow-x: auto;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead {
+        background: var(--surface2);
+      }
+      th {
+        padding: 0.9rem 1.25rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th:first-child {
+        color: var(--text-muted);
+      }
+      th.col-server {
+        color: var(--accent2);
+      }
+      th.col-serverless {
+        color: var(--accent3);
+      }
+      th.col-hangfire {
+        color: var(--accent4);
+      }
+      td {
+        padding: 0.85rem 1.25rem;
+        font-size: 0.92rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      td.feature {
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+      td.good {
+        color: var(--accent2);
+      }
+      td.bad {
+        color: var(--accent3);
+      }
+      td.neutral {
+        color: var(--text);
+      }
 
-    /* ── CALLOUT BOXES ── */
-    .callout {
-      margin-top: 2rem;
-      border-radius: 8px;
-      padding: 1.25rem 1.5rem;
-      font-size: 0.92rem;
-      line-height: 1.75;
-    }
-    .callout.info {
-      background: rgba(88,166,255,0.08);
-      border: 1px solid rgba(88,166,255,0.3);
-      color: var(--text);
-    }
-    .callout.warning {
-      background: rgba(227,179,65,0.08);
-      border: 1px solid rgba(227,179,65,0.3);
-      color: var(--text);
-    }
-    .callout.tip {
-      background: rgba(63,185,80,0.08);
-      border: 1px solid rgba(63,185,80,0.3);
-      color: var(--text);
-    }
-    .callout-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-    .callout.info   .callout-label { color: var(--accent); }
-    .callout.warning .callout-label { color: var(--yellow); }
-    .callout.tip    .callout-label { color: var(--accent2); }
+      /* ── CALLOUT BOXES ── */
+      .callout {
+        margin-top: 2rem;
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        font-size: 0.92rem;
+        line-height: 1.75;
+      }
+      .callout.info {
+        background: rgba(88, 166, 255, 0.08);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+        color: var(--text);
+      }
+      .callout.warning {
+        background: rgba(227, 179, 65, 0.08);
+        border: 1px solid rgba(227, 179, 65, 0.3);
+        color: var(--text);
+      }
+      .callout.tip {
+        background: rgba(63, 185, 80, 0.08);
+        border: 1px solid rgba(63, 185, 80, 0.3);
+        color: var(--text);
+      }
+      .callout.purple {
+        background: rgba(210, 168, 255, 0.08);
+        border: 1px solid rgba(210, 168, 255, 0.3);
+        color: var(--text);
+      }
+      .callout-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .callout.info .callout-label {
+        color: var(--accent);
+      }
+      .callout.warning .callout-label {
+        color: var(--yellow);
+      }
+      .callout.tip .callout-label {
+        color: var(--accent2);
+      }
+      .callout.purple .callout-label {
+        color: var(--accent4);
+      }
 
-    /* ── WHY WORKER ── */
-    .reason-list { display: grid; gap: 1rem; margin-top: 0.5rem; }
-    .reason {
-      display: flex; gap: 1rem; align-items: flex-start;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem 1.5rem;
-    }
-    .reason-icon {
-      font-size: 1.4rem;
-      flex-shrink: 0;
-      margin-top: 0.1rem;
-    }
-    .reason h4 { font-size: 0.98rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--accent4); }
-    .reason p  { font-size: 0.88rem; color: var(--text-muted); }
+      /* ── WHY WORKER ── */
+      .reason-list {
+        display: grid;
+        gap: 1rem;
+        margin-top: 0.5rem;
+      }
+      .reason {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+      }
+      .reason-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+      }
+      .reason h4 {
+        font-size: 0.98rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        color: var(--accent4);
+      }
+      .reason p {
+        font-size: 0.88rem;
+        color: var(--text-muted);
+      }
 
-    /* ── QUARTZ DEFINITION ── */
-    .quartz-def {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent4);
-      border-radius: 8px;
-      padding: 1.5rem 2rem;
-      font-size: 0.97rem;
-      margin-bottom: 2rem;
-    }
-    .quartz-def strong { color: var(--accent4); }
+      /* ── QUARTZ DEFINITION ── */
+      .quartz-def {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent4);
+        border-radius: 8px;
+        padding: 1.5rem 2rem;
+        font-size: 0.97rem;
+        margin-bottom: 2rem;
+      }
+      .quartz-def strong {
+        color: var(--accent4);
+      }
 
-    /* ── CODE BLOCKS ── */
-    .code-label {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      padding: 0.6rem 1.1rem;
-    }
-    .code-label span {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      letter-spacing: 0.08em;
-    }
-    .code-label .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-    .dot-r { background: #f78166; }
-    .dot-y { background: #e3b341; }
-    .dot-g { background: #3fb950; }
-    pre {
-      background: #010409;
-      border: 1px solid var(--border);
-      border-radius: 0 0 8px 8px;
-      padding: 1.5rem;
-      overflow-x: auto;
-      margin-bottom: 2rem;
-    }
-    code {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.82rem;
-      line-height: 1.8;
-      color: var(--text);
-    }
-    /* Syntax highlights */
-    .kw  { color: #ff7b72; }   /* keywords */
-    .cl  { color: #d2a8ff; }   /* class names */
-    .fn  { color: #79c0ff; }   /* functions / methods */
-    .st  { color: #a5d6ff; }   /* strings */
-    .cm  { color: #8b949e; font-style: italic; } /* comments */
-    .nm  { color: #f0883e; }   /* numbers */
-    .op  { color: #ff7b72; }   /* operators */
-    .va  { color: #e6edf3; }   /* variables */
+      /* ── CODE BLOCKS ── */
+      .code-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+        padding: 0.6rem 1.1rem;
+      }
+      .code-label span {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+      }
+      .code-label .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+      }
+      .dot-r {
+        background: #f78166;
+      }
+      .dot-y {
+        background: #e3b341;
+      }
+      .dot-g {
+        background: #3fb950;
+      }
+      pre {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 0 0 8px 8px;
+        padding: 1.5rem;
+        overflow-x: auto;
+        margin-bottom: 2rem;
+      }
+      code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.82rem;
+        line-height: 1.8;
+        color: var(--text);
+      }
+      /* Syntax highlights */
+      .kw {
+        color: #ff7b72;
+      } /* keywords */
+      .cl {
+        color: #d2a8ff;
+      } /* class names */
+      .fn {
+        color: #79c0ff;
+      } /* functions / methods */
+      .st {
+        color: #a5d6ff;
+      } /* strings */
+      .cm {
+        color: #8b949e;
+        font-style: italic;
+      } /* comments */
+      .nm {
+        color: #f0883e;
+      } /* numbers */
+      .op {
+        color: #ff7b72;
+      } /* operators */
+      .va {
+        color: #e6edf3;
+      } /* variables */
 
-    /* ── FOOTER ── */
-    footer {
-      text-align: center;
-      padding: 3rem 2rem;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      border-top: 1px solid var(--border);
-    }
+      /* ── FEATURE GRID (Hangfire) ── */
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+        margin-top: 0.5rem;
+      }
+      .feature-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.5rem 1.6rem;
+        transition:
+          border-color 0.2s,
+          transform 0.2s;
+      }
+      .feature-box:hover {
+        border-color: var(--accent4);
+        transform: translateY(-2px);
+      }
+      .feature-box .ico {
+        font-size: 1.6rem;
+        margin-bottom: 0.6rem;
+        display: block;
+      }
+      .feature-box h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--accent4);
+        margin-bottom: 0.5rem;
+      }
+      .feature-box p {
+        font-size: 0.88rem;
+        color: var(--text-muted);
+      }
 
-    /* ── ANIMATIONS ── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.55s ease, transform 0.55s ease;
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+      @media (max-width: 700px) {
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+      }
 
-    @media (max-width: 600px) {
-      nav { padding: 0.7rem 1rem; }
-      .nav-links { display: none; }
-      section { padding: 4rem 1.25rem; }
-    }
-  </style>
-</head>
-<body>
+      /* ── FOOTER ── */
+      footer {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        border-top: 1px solid var(--border);
+      }
 
-<div id="progress-bar"></div>
+      /* ── ANIMATIONS ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.55s ease,
+          transform 0.55s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
 
-<nav>
-  <span class="nav-brand">BG Services</span>
-  <div class="nav-links">
-    <a href="#definition">Definition</a>
-    <a href="#examples">Examples</a>
-    <a href="#hosting">Hosting</a>
-    <a href="#worker">Worker Service</a>
-    <a href="#quartz">Quartz.NET</a>
-  </div>
-</nav>
+      @media (max-width: 600px) {
+        nav {
+          padding: 0.7rem 1rem;
+        }
+        .nav-links {
+          display: none;
+        }
+        section {
+          padding: 4rem 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress-bar"></div>
 
-<main>
+    <nav>
+      <span class="nav-brand">BG Services</span>
+      <div class="nav-links">
+        <a href="#definition">Definition</a>
+        <a href="#examples">Examples</a>
+        <a href="#hosting">Hosting</a>
+        <a href="#worker">Worker Service</a>
+        <a href="#quartz">Quartz.NET</a>
+        <a href="#hangfire">Hangfire</a>
+      </div>
+    </nav>
 
-  <!-- ═══ HERO ═══ -->
-  <section id="definition" style="border-bottom:1px solid var(--border); min-height:100vh; display:flex; flex-direction:column; justify-content:center; text-align:center; padding:5rem 2.5rem; max-width:900px; margin:0 auto;">
-    <div class="hero-eyebrow">Presentation · Backend Architecture</div>
-    <h1 class="hero-title">What is a <br><span class="hl">Background Service?</span></h1>
-    <p class="hero-sub">Long-running processes that keep your system running — even when no one is watching.</p>
-    <div class="hero-definition reveal">
-      A <strong>Background Service</strong> is a long-running process designed to execute tasks
-      <strong>independently of user interaction</strong>. It is <strong>request-agnostic</strong> —
-      meaning it does not rely on incoming HTTP requests or UI triggers to function.
-      Instead, it operates continuously in the server's background, maintaining its own lifecycle
-      to perform <strong>recurring or deferred operations</strong>.
-    </div>
-  </section>
-
-  <!-- ═══ EXAMPLES ═══ -->
-  <section id="examples" style="max-width:900px; margin:0 auto; padding:5rem 2.5rem; border-bottom:1px solid var(--border);">
-    <div class="section-eyebrow">Use Cases</div>
-    <h2>Practical Examples</h2>
-    <div class="cards">
-
-      <div class="card reveal">
-        <div class="card-num">EXAMPLE 01</div>
-        <h3>⏰ Automated Subscription Expiration Notification</h3>
-        <p>
-          The service periodically checks the database for users whose subscription has expired
-          or is about to expire, comparing the <code style="color:var(--accent);background:rgba(88,166,255,0.1);padding:0 4px;border-radius:3px;">EndDate</code>
-          with the Current Date — then fires off reminder emails automatically.
+    <main>
+      <!-- ═══ HERO ═══ -->
+      <section
+        id="definition"
+        style="
+          border-bottom: 1px solid var(--border);
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          text-align: center;
+          padding: 5rem 2.5rem;
+          max-width: 900px;
+          margin: 0 auto;
+        "
+      >
+        <div class="hero-eyebrow">Presentation · Backend Architecture</div>
+        <h1 class="hero-title">
+          What is a <br /><span class="hl">Background Service?</span>
+        </h1>
+        <p class="hero-sub">
+          Long-running processes that keep your system running — even when no
+          one is watching.
         </p>
-      </div>
+        <div class="hero-definition reveal">
+          A <strong>Background Service</strong> is a long-running process
+          designed to execute tasks
+          <strong>independently of user interaction</strong>. It is
+          <strong>request-agnostic</strong> — meaning it does not rely on
+          incoming HTTP requests or UI triggers to function. Instead, it
+          operates continuously in the server's background, maintaining its own
+          lifecycle to perform
+          <strong>recurring or deferred operations</strong>.
+        </div>
+      </section>
 
-      <div class="card reveal">
-        <div class="card-num">EXAMPLE 02</div>
-        <h3>🔄 Periodic Cache Refresh</h3>
-        <p>
-          A background task clears or refreshes the system's memory cache at specific intervals
-          to ensure <strong>data consistency</strong> across the application without manual intervention.
+      <!-- ═══ EXAMPLES ═══ -->
+      <section
+        id="examples"
+        style="
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 5rem 2.5rem;
+          border-bottom: 1px solid var(--border);
+        "
+      >
+        <div class="section-eyebrow">Use Cases</div>
+        <h2>Practical Examples</h2>
+        <div class="cards">
+          <div class="card reveal">
+            <div class="card-num">EXAMPLE 01</div>
+            <h3>⏰ Automated Subscription Expiration Notification</h3>
+            <p>
+              The service periodically checks the database for users whose
+              subscription has expired or is about to expire, comparing the
+              <code
+                style="
+                  color: var(--accent);
+                  background: rgba(88, 166, 255, 0.1);
+                  padding: 0 4px;
+                  border-radius: 3px;
+                "
+                >EndDate</code
+              >
+              with the Current Date — then fires off reminder emails
+              automatically.
+            </p>
+          </div>
+
+          <div class="card reveal">
+            <div class="card-num">EXAMPLE 02</div>
+            <h3>🔄 Periodic Cache Refresh</h3>
+            <p>
+              A background task clears or refreshes the system's memory cache at
+              specific intervals to ensure
+              <strong>data consistency</strong> across the application without
+              manual intervention.
+            </p>
+          </div>
+
+          <div class="card reveal">
+            <div class="card-num">EXAMPLE 03</div>
+            <h3>🗃️ Database Log Archiving</h3>
+            <p>
+              To maintain high performance, the service automatically moves old
+              logs (older than 30 days) from the active table to an archive
+              table — keeping queries fast and storage clean.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ HOSTING ═══ -->
+      <section
+        id="hosting"
+        style="
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 5rem 2.5rem;
+          border-bottom: 1px solid var(--border);
+        "
+      >
+        <div class="section-eyebrow">Deployment Strategy</div>
+        <h2>Why Hosting Matters for Background Services</h2>
+
+        <div class="table-wrap reveal">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th class="col-server">
+                  Persistent Server<br /><span
+                    style="
+                      font-weight: 400;
+                      color: var(--text-muted);
+                      font-size: 0.72rem;
+                    "
+                    >(VPS / Containers)</span
+                  >
+                </th>
+                <th class="col-serverless">
+                  Serverless Platform<br /><span
+                    style="
+                      font-weight: 400;
+                      color: var(--text-muted);
+                      font-size: 0.72rem;
+                    "
+                    >(Vercel / Netlify / Azure Functions)</span
+                  >
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="feature">Execution Model</td>
+                <td class="good">
+                  ✅ Proactive — Runs 24/7<br /><small
+                    style="color: var(--text-muted)"
+                    >Long-running process</small
+                  >
+                </td>
+                <td class="bad">
+                  ⚡ Reactive — Runs on demand<br /><small
+                    style="color: var(--text-muted)"
+                    >Trigger-based only</small
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td class="feature">Process Lifecycle</td>
+                <td class="good">
+                  ✅ Persistent memory state<br /><small
+                    style="color: var(--text-muted)"
+                    >Always alive</small
+                  >
+                </td>
+                <td class="bad">
+                  ❌ Spins down after request<br /><small
+                    style="color: var(--text-muted)"
+                    >Process is killed / sleeps</small
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td class="feature">Background Tasks</td>
+                <td class="good">
+                  ✅ Ideal for Quartz.NET<br />& Worker Services
+                </td>
+                <td class="bad">
+                  ❌ Not supported natively<br /><small
+                    style="color: var(--text-muted)"
+                    >Processes are killed quickly</small
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td class="feature">Cost Model</td>
+                <td class="neutral">Fixed monthly cost</td>
+                <td class="good">✅ Pay per invocation</td>
+              </tr>
+              <tr>
+                <td class="feature">Examples</td>
+                <td class="neutral">
+                  AWS EC2 · DigitalOcean VPS<br />Azure App Service · Docker
+                </td>
+                <td class="neutral">
+                  Vercel · Netlify<br />Azure Functions · AWS Lambda
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout info reveal">
+          <div class="callout-label">💡 Key Takeaway</div>
+          <strong>My project needs a Persistent Server.</strong><br />
+          To guarantee that the Background Service process is
+          <em>always running</em>, we must deploy on a server that maintains a
+          continuous, live process — not a platform that kills the process after
+          each request. A serverless platform cannot keep a Quartz.NET scheduler
+          alive between triggers.
+        </div>
+
+        <div class="callout warning reveal">
+          <div class="callout-label">📝 Note — Alternative Approach</div>
+          It is still possible to use
+          <strong>Serverless Task Scheduling</strong> as an alternative. For
+          example: keep Quartz.NET's schedule definitions, but host the actual
+          job logic inside an <strong>Azure Function</strong> (or AWS Lambda).
+          The function gets triggered on a timer, executes the logic, and exits.
+          This works for simple, short-lived tasks — but for continuous
+          observers or stateful jobs, a persistent server remains the right
+          choice.
+        </div>
+      </section>
+
+      <!-- ═══ WORKER SERVICE ═══ -->
+      <section
+        id="worker"
+        style="
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 5rem 2.5rem;
+          border-bottom: 1px solid var(--border);
+        "
+      >
+        <div class="section-eyebrow">Architecture</div>
+        <h2>Why Use a Dedicated Worker Service?</h2>
+
+        <p
+          style="
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+          "
+        >
+          While you can run background tasks inside your main web application,
+          creating a
+          <strong style="color: var(--text)"
+            >separate Worker Service project</strong
+          >
+          (within the same Solution) becomes important as your system grows.
         </p>
-      </div>
 
-      <div class="card reveal">
-        <div class="card-num">EXAMPLE 03</div>
-        <h3>🗃️ Database Log Archiving</h3>
-        <p>
-          To maintain high performance, the service automatically moves old logs
-          (older than 30 days) from the active table to an archive table — keeping
-          queries fast and storage clean.
+        <div class="reason-list">
+          <div class="reason reveal">
+            <div class="reason-icon">🛡️</div>
+            <div>
+              <h4>Fault Isolation — Crash Resilience</h4>
+              <p>
+                Running background tasks in a separate process ensures that any
+                errors or crashes within your background jobs
+                <strong>do not bring down your main web application</strong>.
+                Your users experience uninterrupted service even if a background
+                job fails hard.
+              </p>
+            </div>
+          </div>
+          <div class="reason reveal">
+            <div class="reason-icon">📈</div>
+            <div>
+              <h4>Resource Management &amp; Independent Scalability</h4>
+              <p>
+                Heavy background tasks (report generation, image processing) can
+                be CPU/RAM intensive. Isolating them prevents
+                <strong>resource competition</strong> with the web app, and
+                allows you to
+                <strong>scale the worker independently</strong> based on task
+                load.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout tip reveal">
+          <div class="callout-label">
+            ⚠️ Important Note for Smaller Projects
+          </div>
+          If your application is small or has a limited number of background
+          tasks,
+          <strong>don't over-engineer it</strong>. You can safely host
+          Quartz.NET jobs directly inside your main web application process —
+          this reduces infrastructure complexity and deployment cost. Only move
+          to a dedicated Worker Service once your system grows in complexity,
+          load, or requires higher reliability.
+        </div>
+      </section>
+
+      <!-- ═══ QUARTZ ═══ -->
+      <section
+        id="quartz"
+        style="
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 5rem 2.5rem;
+          border-bottom: 1px solid var(--border);
+        "
+      >
+        <div class="section-eyebrow">Library</div>
+        <h2>What is Quartz.NET?</h2>
+
+        <div class="quartz-def reveal">
+          <strong>Quartz.NET</strong> is a
+          <strong>Job Scheduling Library</strong> that links
+          <strong>Jobs</strong> (your business logic) to
+          <strong>Triggers</strong> (your schedules), ensuring your code
+          executes automatically at precise times — without any manual
+          intervention.
+        </div>
+
+        <!-- program.cs code block -->
+        <p
+          style="
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 1rem;
+          "
+          class="reveal"
+        >
+          Register all your jobs inside
+          <code style="color: var(--accent)">Program.cs</code>:
         </p>
-      </div>
 
-    </div>
-  </section>
-
-  <!-- ═══ HOSTING ═══ -->
-  <section id="hosting" style="max-width:900px; margin:0 auto; padding:5rem 2.5rem; border-bottom:1px solid var(--border);">
-    <div class="section-eyebrow">Deployment Strategy</div>
-    <h2>Why Hosting Matters for Background Services</h2>
-
-    <div class="table-wrap reveal">
-      <table>
-        <thead>
-          <tr>
-            <th>Feature</th>
-            <th class="col-server">Persistent Server<br><span style="font-weight:400;color:var(--text-muted);font-size:0.72rem;">(VPS / Containers)</span></th>
-            <th class="col-serverless">Serverless Platform<br><span style="font-weight:400;color:var(--text-muted);font-size:0.72rem;">(Vercel / Netlify / Azure Functions)</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="feature">Execution Model</td>
-            <td class="good">✅ Proactive — Runs 24/7<br><small style="color:var(--text-muted);">Long-running process</small></td>
-            <td class="bad">⚡ Reactive — Runs on demand<br><small style="color:var(--text-muted);">Trigger-based only</small></td>
-          </tr>
-          <tr>
-            <td class="feature">Process Lifecycle</td>
-            <td class="good">✅ Persistent memory state<br><small style="color:var(--text-muted);">Always alive</small></td>
-            <td class="bad">❌ Spins down after request<br><small style="color:var(--text-muted);">Process is killed / sleeps</small></td>
-          </tr>
-          <tr>
-            <td class="feature">Background Tasks</td>
-            <td class="good">✅ Ideal for Quartz.NET<br>& Worker Services</td>
-            <td class="bad">❌ Not supported natively<br><small style="color:var(--text-muted);">Processes are killed quickly</small></td>
-          </tr>
-          <tr>
-            <td class="feature">Cost Model</td>
-            <td class="neutral">Fixed monthly cost</td>
-            <td class="good">✅ Pay per invocation</td>
-          </tr>
-          <tr>
-            <td class="feature">Examples</td>
-            <td class="neutral">AWS EC2 · DigitalOcean VPS<br>Azure App Service · Docker</td>
-            <td class="neutral">Vercel · Netlify<br>Azure Functions · AWS Lambda</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="callout info reveal">
-      <div class="callout-label">💡 Key Takeaway</div>
-      <strong>My project needs a Persistent Server.</strong><br>
-      To guarantee that the Background Service process is <em>always running</em>,
-      we must deploy on a server that maintains a continuous, live process —
-      not a platform that kills the process after each request.
-      A serverless platform cannot keep a Quartz.NET scheduler alive between triggers.
-    </div>
-
-    <div class="callout warning reveal">
-      <div class="callout-label">📝 Note — Alternative Approach</div>
-      It is still possible to use <strong>Serverless Task Scheduling</strong> as an alternative.
-      For example: keep Quartz.NET's schedule definitions, but host the actual job logic
-      inside an <strong>Azure Function</strong> (or AWS Lambda). The function gets triggered
-      on a timer, executes the logic, and exits. This works for simple, short-lived tasks —
-      but for continuous observers or stateful jobs, a persistent server remains the right choice.
-    </div>
-  </section>
-
-  <!-- ═══ WORKER SERVICE ═══ -->
-  <section id="worker" style="max-width:900px; margin:0 auto; padding:5rem 2.5rem; border-bottom:1px solid var(--border);">
-    <div class="section-eyebrow">Architecture</div>
-    <h2>Why Use a Dedicated Worker Service?</h2>
-
-    <p style="color:var(--text-muted); margin-bottom:2rem; font-size:0.95rem;">
-      While you can run background tasks inside your main web application, creating a
-      <strong style="color:var(--text);">separate Worker Service project</strong> (within the same Solution)
-      becomes important as your system grows.
-    </p>
-
-    <div class="reason-list">
-      <div class="reason reveal">
-        <div class="reason-icon">🛡️</div>
-        <div>
-          <h4>Fault Isolation — Crash Resilience</h4>
-          <p>
-            Running background tasks in a separate process ensures that any errors or crashes
-            within your background jobs <strong>do not bring down your main web application</strong>.
-            Your users experience uninterrupted service even if a background job fails hard.
-          </p>
-        </div>
-      </div>
-      <div class="reason reveal">
-        <div class="reason-icon">📈</div>
-        <div>
-          <h4>Resource Management &amp; Independent Scalability</h4>
-          <p>
-            Heavy background tasks (report generation, image processing) can be CPU/RAM intensive.
-            Isolating them prevents <strong>resource competition</strong> with the web app,
-            and allows you to <strong>scale the worker independently</strong> based on task load.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="callout tip reveal">
-      <div class="callout-label">⚠️ Important Note for Smaller Projects</div>
-      If your application is small or has a limited number of background tasks,
-      <strong>don't over-engineer it</strong>. You can safely host Quartz.NET jobs directly
-      inside your main web application process — this reduces infrastructure complexity
-      and deployment cost. Only move to a dedicated Worker Service once your system grows
-      in complexity, load, or requires higher reliability.
-    </div>
-  </section>
-
-  <!-- ═══ QUARTZ ═══ -->
-  <section id="quartz" style="max-width:900px; margin:0 auto; padding:5rem 2.5rem;">
-    <div class="section-eyebrow">Library</div>
-    <h2>What is Quartz.NET?</h2>
-
-    <div class="quartz-def reveal">
-      <strong>Quartz.NET</strong> is a <strong>Job Scheduling Library</strong> that links
-      <strong>Jobs</strong> (your business logic) to <strong>Triggers</strong> (your schedules),
-      ensuring your code executes automatically at precise times — without any manual intervention.
-    </div>
-
-    <!-- program.cs code block -->
-    <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:1rem;" class="reveal">
-      Register all your jobs inside <code style="color:var(--accent);">Program.cs</code>:
-    </p>
-
-    <div class="reveal">
-      <div class="code-label">
-        <div>
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-        </div>
-        <span>Program.cs — Quartz Registration</span>
-      </div>
-      <pre><code><span class="va">builder</span>.<span class="fn">Services</span>.<span class="fn">AddQuartz</span>(<span class="va">q</span> =>
+        <div class="reveal">
+          <div class="code-label">
+            <div>
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+            </div>
+            <span>Program.cs — Quartz Registration</span>
+          </div>
+          <pre><code><span class="va">builder</span>.<span class="fn">Services</span>.<span class="fn">AddQuartz</span>(<span class="va">q</span> =>
 {
     <span class="cm">// ── Job 1: Cleanup Job ──────────────────────────────</span>
     <span class="kw">var</span> <span class="va">cleanupJobKey</span> = <span class="kw">new</span> <span class="cl">JobKey</span>(<span class="st">"CleanupJob"</span>);
@@ -541,7 +875,7 @@
         .<span class="fn">ForJob</span>(<span class="va">cleanupJobKey</span>)
         .<span class="fn">WithIdentity</span>(<span class="st">"Cleanup-Trigger"</span>)
         .<span class="fn">WithCronSchedule</span>(<span class="st">"0 0 1 * * ?"</span>));   <span class="cm">// runs at 1:00 AM daily</span>
-
+ 
     <span class="cm">// ── Job 2: Email Reminder Job ───────────────────────</span>
     <span class="kw">var</span> <span class="va">emailJobKey</span> = <span class="kw">new</span> <span class="cl">JobKey</span>(<span class="st">"EmailReminderJob"</span>);
     <span class="va">q</span>.<span class="fn">AddJob</span>&lt;<span class="cl">EmailReminderJob</span>&gt;(<span class="va">opts</span> => <span class="va">opts</span>.<span class="fn">WithIdentity</span>(<span class="va">emailJobKey</span>));
@@ -550,80 +884,181 @@
         .<span class="fn">WithIdentity</span>(<span class="st">"Email-Trigger"</span>)
         .<span class="fn">WithCronSchedule</span>(<span class="st">"0 0 9 * * ?"</span>));   <span class="cm">// runs at 9:00 AM daily</span>
 });
-
+ 
 <span class="va">builder</span>.<span class="fn">Services</span>.<span class="fn">AddQuartzHostedService</span>(<span class="va">q</span> => <span class="va">q</span>.<span class="va">WaitForJobsToComplete</span> = <span class="kw">true</span>);</code></pre>
-    </div>
-
-    <!-- BLL class code block -->
-    <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:1rem;" class="reveal">
-      Place the Job class inside your <code style="color:var(--accent4);">BLL Layer</code> with its own logic:
-    </p>
-
-    <div class="reveal">
-      <div class="code-label">
-        <div>
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
         </div>
-        <span>BLL / CleanupJob.cs — Job Class</span>
-      </div>
-      <pre><code><span class="kw">public class</span> <span class="cl">CleanupJob</span> : <span class="cl">IJob</span>
+
+        <!-- BLL class code block -->
+        <p
+          style="
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 1rem;
+          "
+          class="reveal"
+        >
+          Place the Job class inside your
+          <code style="color: var(--accent4)">BLL Layer</code> with its own
+          logic:
+        </p>
+
+        <div class="reveal">
+          <div class="code-label">
+            <div>
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+            </div>
+            <span>BLL / CleanupJob.cs — Job Class</span>
+          </div>
+          <pre><code><span class="kw">public class</span> <span class="cl">CleanupJob</span> : <span class="cl">IJob</span>
 {
     <span class="kw">private readonly</span> <span class="cl">GymDbContext</span>   <span class="va">_db</span>;
     <span class="kw">private readonly</span> <span class="cl">ILogger</span>&lt;<span class="cl">CleanupJob</span>&gt; <span class="va">_logger</span>;
-
+ 
     <span class="cm">// Inject DbContext and Logger via constructor</span>
     <span class="kw">public</span> <span class="fn">CleanupJob</span>(<span class="cl">GymDbContext</span> <span class="va">db</span>, <span class="cl">ILogger</span>&lt;<span class="cl">CleanupJob</span>&gt; <span class="va">logger</span>)
     {
         <span class="va">_db</span>     = <span class="va">db</span>;
         <span class="va">_logger</span> = <span class="va">logger</span>;
     }
-
+ 
     <span class="kw">public async</span> <span class="cl">Task</span> <span class="fn">Execute</span>(<span class="cl">IJobExecutionContext</span> <span class="va">context</span>)
     {
         <span class="va">_logger</span>.<span class="fn">LogInformation</span>(<span class="st">"CleanupJob started at: {time}"</span>, <span class="cl">DateTime</span>.<span class="va">Now</span>);
-
+ 
         <span class="cm">// Delete subscriptions that expired more than 1 year ago</span>
         <span class="kw">var</span> <span class="va">oldDate</span>          = <span class="cl">DateTime</span>.<span class="va">Now</span>.<span class="fn">AddYears</span>(-<span class="nm">1</span>);
         <span class="kw">var</span> <span class="va">oldSubscriptions</span> = <span class="va">_db</span>.<span class="va">Subscriptions</span>
                                    .<span class="fn">Where</span>(<span class="va">s</span> => <span class="va">s</span>.<span class="va">EndDate</span> &lt; <span class="va">oldDate</span>);
-
+ 
         <span class="va">_db</span>.<span class="va">Subscriptions</span>.<span class="fn">RemoveRange</span>(<span class="va">oldSubscriptions</span>);
         <span class="kw">await</span> <span class="va">_db</span>.<span class="fn">SaveChangesAsync</span>();
-
+ 
         <span class="va">_logger</span>.<span class="fn">LogInformation</span>(
             <span class="st">"CleanupJob finished. {count} records removed."</span>,
             <span class="va">oldSubscriptions</span>.<span class="fn">Count</span>());
     }
 }</code></pre>
-    </div>
+        </div>
+      </section>
 
-  </section>
+      <!-- ═══ HANGFIRE ═══ -->
+      <section
+        id="hangfire"
+        style="max-width: 900px; margin: 0 auto; padding: 5rem 2.5rem"
+      >
+        <div class="section-eyebrow">Library</div>
+        <h2>Hangfire: A Background Job Processing System</h2>
 
-</main>
+        <div
+          class="quartz-def reveal"
+          style="border-left-color: var(--accent4)"
+        >
+          <strong>Hangfire</strong> is not just a job scheduler — it is a
+          comprehensive, robust <strong>system</strong> designed to ensure
+          <strong>reliable execution</strong>, <strong>task tracking</strong>,
+          and <strong>lifecycle management</strong> for background tasks within
+          .NET applications.
+        </div>
 
-<footer>
-  Background Services &amp; Quartz.NET &nbsp;·&nbsp; Presentation by Mohamed
-</footer>
+        <p
+          style="
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 1.25rem;
+          "
+          class="reveal"
+        >
+          Key features that define Hangfire as a full processing system rather
+          than a simple scheduler:
+        </p>
 
-<script>
-  // Progress bar
-  window.addEventListener('scroll', () => {
-    const total  = document.documentElement.scrollHeight - window.innerHeight;
-    const pct    = (window.scrollY / total) * 100;
-    document.getElementById('progress-bar').style.width = pct + '%';
-  });
+        <div class="feature-grid">
+          <div class="feature-box reveal">
+            <span class="ico">🚀</span>
+            <h4>Fire-and-Forget Tasks</h4>
+            <p>
+              Offload heavy operations (sending emails, processing images,
+              generating reports) to the background immediately. The user
+              doesn't wait for the task to finish — this significantly improves
+              API response times and overall performance.
+            </p>
+          </div>
 
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('visible'); }
-    });
-  }, { threshold: 0.12 });
-  reveals.forEach(r => observer.observe(r));
-</script>
+          <div class="feature-box reveal">
+            <span class="ico">🔁</span>
+            <h4>Automatic Retries</h4>
+            <p>
+              Reliability is built in: failed jobs are retried automatically
+              using an intelligent
+              <strong>Exponential Backoff</strong> strategy. A network glitch or
+              temporary exception won't lose the job — Hangfire manages the
+              retry logic for you.
+            </p>
+          </div>
 
-</body>
+          <div class="feature-box reveal">
+            <span class="ico">🔗</span>
+            <h4>Continuations</h4>
+            <p>
+              Build complex workflows by chaining jobs together. Schedule a job
+              to run automatically only after a previous job completes
+              successfully — no need to hand-write complex orchestration logic
+              for dependent operations.
+            </p>
+          </div>
+
+          <div class="feature-box reveal">
+            <span class="ico">📊</span>
+            <h4>Dashboard Interface (UI)</h4>
+            <p>
+              A built-in, real-time web UI acts as mission control: monitor
+              every job's status (Enqueued, Processing, Succeeded, Failed),
+              inspect detailed error logs, and manually trigger retries with one
+              click — no digging through raw tables or logs.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout purple reveal">
+          <div class="callout-label">💡 Why This Matters</div>
+          This is exactly what distinguishes Hangfire as a
+          <strong>processing system</strong> rather than "just a scheduler" — it
+          doesn't only decide <em>when</em> code runs (like Quartz.NET's Jobs +
+          Triggers model), it also tracks <em>whether</em> it ran, retries it if
+          it didn't, chains it to other work, and gives you full visibility into
+          the entire job lifecycle out of the box.
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Background Services &amp; Quartz.NET &nbsp;·&nbsp; Presentation by Mohamed
+    </footer>
+
+    <script>
+      // Progress bar
+      window.addEventListener("scroll", () => {
+        const total =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const pct = (window.scrollY / total) * 100;
+        document.getElementById("progress-bar").style.width = pct + "%";
+      });
+
+      // Scroll reveal
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+            }
+          });
+        },
+        { threshold: 0.12 },
+      );
+      reveals.forEach((r) => observer.observe(r));
+    </script>
+  </body>
 </html>
